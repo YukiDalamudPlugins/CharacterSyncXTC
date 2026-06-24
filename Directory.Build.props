@@ -4,8 +4,10 @@
     Dalamud.NET.Sdk 在 Windows 會無條件指向 XIVLauncher\addon\Hooks\dev，
     唯一能在專案內覆寫的掛勾是 DALAMUD_HOME 屬性（Sdk.props 最後一行據此覆寫 DalamudLibPath）。
     注意：SDK 會自動補尾斜線，這裡請勿加尾斜線。
+    CI 會自行設定 DALAMUD_HOME 環境變數指向下載的 API 12 Dalamud，故此處加上
+    Condition 僅在未設定時（本機開發）才套用 FFXIVSimpleLauncher 路徑。
   -->
-  <PropertyGroup>
+  <PropertyGroup Condition="'$(DALAMUD_HOME)' == ''">
     <DALAMUD_HOME>$(AppData)\FFXIVSimpleLauncher\Dalamud\Injector</DALAMUD_HOME>
   </PropertyGroup>
 </Project>

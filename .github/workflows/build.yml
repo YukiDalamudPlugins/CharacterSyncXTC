@@ -1,0 +1,66 @@
+name: Build
+
+# 台服 (TC) 自動建置打包。
+# - push 到 main / PR：建置並上傳 latest.zip 為 artifact。
+# - 推 v* tag（例如 v2.1.6.0）：建置並把 latest.zip 附到 GitHub Release。
+#
+# TC 客戶端用的是 API 12 的 Dalamud fork（非 goatcorp 國際服 latest），
+# 這裡下載該發行版並以 DALAMUD_HOME 指向它（Dalamud.NET.Sdk 會把
+# DALAMUD_HOME 映射為 DalamudLibPath；Directory.Build.props 只在未設定
+# DALAMUD_HOME 時才套用本機 FFXIVSimpleLauncher 路徑）。
+# 在 Linux runner 建置 net9.0-windows 目標需要 EnableWindowsTargeting=true。
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 建立 GitHub Release 需要
+
+env:
+  # API 12 的 TC Dalamud（PlusoneChiang fork，TC 啟動器使用的版本）。
+  # TC 客戶端 Dalamud 版本變動時請更新；亦可用 repo variable DALAMUD_DISTRIB_URL 覆寫而不必改此檔。
+  DALAMUD_URL: ${{ vars.DALAMUD_DISTRIB_URL || 'https://github.com/PlusoneChiang/Dalamud/releases/download/12.0.1.5-tc.17/dalamud-tc-12.0.1.5-tc.17.zip' }}
+  EnableWindowsTargeting: 'true'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Download TC Dalamud (API 12)
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME/dalamud"
+          curl -fsSL "$DALAMUD_URL" -o /tmp/dalamud.zip
+          unzip -q /tmp/dalamud.zip -d "$HOME/dalamud"
+          test -f "$HOME/dalamud/Dalamud.dll" || { echo "Dalamud.dll not found after extract"; ls -la "$HOME/dalamud"; exit 1; }
+          echo "DALAMUD_HOME=$HOME/dalamud" >> "$GITHUB_ENV"
+
+      - name: Build (Release)
+        run: dotnet build Dalamud.CharacterSyncTC/Dalamud.CharacterSyncTC.csproj -c Release --nologo
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Dalamud.CharacterSyncTC
+          path: Dalamud.CharacterSyncTC/bin/Release/Dalamud.CharacterSyncTC/latest.zip
+          if-no-files-found: error
+
+      - name: Create GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: Dalamud.CharacterSyncTC/bin/Release/Dalamud.CharacterSyncTC/latest.zip
+          generate_release_notes: true
