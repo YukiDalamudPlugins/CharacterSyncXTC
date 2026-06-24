@@ -1,0 +1,11 @@
+<Project>
+  <!--
+    台服 (TC) 由 FFXIVSimpleLauncher 啟動，Dalamud 12 開發組件位於其 Injector 資料夾。
+    Dalamud.NET.Sdk 在 Windows 會無條件指向 XIVLauncher\addon\Hooks\dev，
+    唯一能在專案內覆寫的掛勾是 DALAMUD_HOME 屬性（Sdk.props 最後一行據此覆寫 DalamudLibPath）。
+    注意：SDK 會自動補尾斜線，這裡請勿加尾斜線。
+  -->
+  <PropertyGroup>
+    <DALAMUD_HOME>$(AppData)\FFXIVSimpleLauncher\Dalamud\Injector</DALAMUD_HOME>
+  </PropertyGroup>
+</Project>

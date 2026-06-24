@@ -1,0 +1,9 @@
+{
+  "Author": "goat, AtmoOmen",
+  "Name": "Character Data Sync TC",
+  "Punchline": "用你的主角色設定資料遊玩所有角色～",
+  "Description": "在外掛設定介面選好主角色後，自動同步你主角色的遊戲設定資料至所有角色上（台服 / 繁中服）",
+  "RepoUrl": "https://github.com/AtmoOmen/Dalamud.CharacterSync",
+  "IconUrl": "https://github.com/goaaats/Dalamud.CharacterSync/raw/master/res/icon.png",
+  "ImageUrls": []
+}
